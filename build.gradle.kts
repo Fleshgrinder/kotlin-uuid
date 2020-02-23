@@ -107,9 +107,9 @@ kotlin {
             }
         }
 
-        val nativeMain = maybeCreate("native")
+        val nativeMain = maybeCreate("nativeMain")
         nativeMain.dependsOn(nonJvmMain)
-        val nativeTest = maybeCreate("native")
+        val nativeTest = maybeCreate("nativeTest")
         nativeTest.dependsOn(nonJvmTest)
 
         nativeTargets.forEach {
