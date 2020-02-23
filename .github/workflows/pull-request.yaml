@@ -5,6 +5,9 @@ on:
     paths-ignore:
       - '*.md'
 
+env:
+  KONAN_DATA_DIR: ~/.gradle/konan
+
 jobs:
   Validation:
     runs-on: ubuntu-latest
@@ -25,15 +28,8 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ~/.gradle
-          key: ${{ runner.os }}-gradle-${{ hashFiles('.kotlin-version', '**/*gradle.*') }}
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*gradle.*') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
-      - name: Konan Cache
-        uses: actions/cache@v1
-        with:
-          path: ~/.konan
-          key: ${{ runner.os }}-konan-${{ hashFiles('.kotlin-version') }}
-          restore-keys: |
-            ${{ runner.os }}-konan-
       - name: ${{ matrix.os }}
         run: ./gradlew check --stacktrace

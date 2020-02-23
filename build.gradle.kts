@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTargetPreset
 
 plugins {
     id("idea")
-    kotlin("multiplatform")
+    kotlin("multiplatform") version "1.3.61"
 }
 
 allprojects {
