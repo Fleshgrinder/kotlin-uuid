@@ -1,4 +1,4 @@
-import org.gradle.internal.os.OperatingSystem
+import org.jetbrains.kotlin.konan.target.HostManager
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTargetPreset
 
 plugins {
@@ -23,16 +23,6 @@ allprojects {
 kotlin {
     val ideaActive = System.getProperty("idea.active") == "true"
 
-    if (ideaActive) {
-        val os = OperatingSystem.current()
-        when {
-            os.isMacOsX -> macosX64("native")
-            os.isLinux -> linuxX64("native")
-            os.isWindows -> mingwX64("native")
-            else -> error("Cannot prepare native target for unknown OS '$os'")
-        }
-    }
-
     js {
         browser()
         nodejs {
@@ -43,6 +33,15 @@ kotlin {
     }
 
     jvm()
+
+    if (ideaActive) {
+        when {
+            HostManager.hostIsMac -> macosX64("native")
+            HostManager.hostIsLinux -> linuxX64("native")
+            HostManager.hostIsMingw -> mingwX64("native")
+            else -> error("Cannot prepare native target for unknown host: ${HostManager.hostName}")
+        }
+    }
 
     val nativeTargets = mutableSetOf<String>()
     presets.withType<KotlinNativeTargetPreset>().all {
@@ -108,18 +107,18 @@ kotlin {
             }
         }
 
-        val nativeMain = maybeCreate("nativeMain")
+        val nativeMain = maybeCreate("native")
         nativeMain.dependsOn(nonJvmMain)
-        val nativeTest = maybeCreate("nativeTest")
+        val nativeTest = maybeCreate("native")
         nativeTest.dependsOn(nonJvmTest)
 
         nativeTargets.forEach {
             targets.getByName(it) {
                 getByName("${it}Main") {
-                    dependsOn(nativeMain)
+                    dependsOn(if (ideaActive) nonJvmMain else nativeMain)
                 }
                 getByName("${it}Test") {
-                    dependsOn(nativeTest)
+                    dependsOn(if (ideaActive) nonJvmTest else nativeTest)
                 }
             }
         }

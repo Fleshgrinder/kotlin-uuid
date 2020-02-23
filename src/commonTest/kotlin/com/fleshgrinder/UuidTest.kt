@@ -2,11 +2,28 @@ package com.fleshgrinder
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertNotEquals
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class UuidTest {
+    @Test fun toUuidSample() {
+        assertEquals(
+            "f81d4fae-7dec-11d0-a765-00a0c91e6bf6",
+            "F81D4FAE-7DEC-11D0-A765-00A0C91E6BF6".toUuid().toString()
+        )
+
+        assertFailsWith<IllegalArgumentException> {
+            "f81d4fae7dec11d0a76500a0c91e6bf6".toUuid()
+        }
+    }
+
+    @Test fun toUuidOrNullSample() {
+        assertNull("f81d4fae7dec11d0a76500a0c91e6bf6".toUuidOrNull())
+    }
+
     @Test fun parsing() {
         "00000000-0000-0000-0000-000000000000".let { assertEquals(it, it.toUuid().toString(), it) }
         "11111111-1111-1111-1111-111111111111".let { assertEquals(it, it.toUuid().toString(), it) }

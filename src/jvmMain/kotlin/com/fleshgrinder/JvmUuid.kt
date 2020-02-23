@@ -15,16 +15,38 @@ public actual class Uuid internal constructor(private val msb: Long, private val
      */
     private val string by lazy(PUBLICATION) { UUID(msb, lsb).toString() }
 
-    public override fun equals(other: Any?): Boolean =
+    public actual override fun equals(other: Any?): Boolean =
         other is Uuid && msb == other.msb && lsb == other.lsb
 
-    public override fun hashCode(): Int =
+    public actual override fun hashCode(): Int =
         (msb or lsb).let { (it shr 32).toInt() or it.toInt() }
 
-    public override fun toString(): String =
+    public actual override fun toString(): String =
         string
 
     public companion object {
+        /**
+         * Parse the given string as UUID.
+         *
+         * The formal string representation of a UUID is specified in RFC&nbsp;4122 on
+         * [page 4](https://tools.ietf.org/html/rfc4122#page-4) and defines that a UUID
+         * is made up of five hexadecimal groups separated by a dash:
+         *
+         *     xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+         *
+         * As can be seen in the example the first group consists of eight hex digits,
+         * group two, three, and four of four and the last and final group of twelve.
+         * The hexadecimal digits `a` to `f` are valid regardless of their casing,
+         * meaning `A` to `F` are considered valid.
+         *
+         * ```java
+         * final Uuid uuid = Uuid.parse("F81D4FAE-7DEC-11D0-A765-00A0C91E6BF6");
+         * System.out.println(uuid);
+         * // f81d4fae-7dec-11d0-a765-00a0c91e6bf6
+         * ```
+         *
+         * @throws IllegalArgumentException if parsing fails
+         */
         @JvmStatic
         // https://youtrack.jetbrains.com/issue/KT-36439
         @SinceKotlin("999999.999999")
