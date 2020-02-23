@@ -1,0 +1,36 @@
+# https://www.alecstrong.com/2020/01/github-actions-mpp/
+name: Test
+
+# Do not run anything if changes affect only Markdown files.
+on.pull_request.paths-ignore: ['*.md']
+
+jobs.build:
+  strategy.matrix:
+    os: [macOS-latest, windows-latest, ubuntu-latest]
+    job: [test]
+  runs-on: ${{matrix.os}}
+  steps:
+    # https://github.com/actions/checkout
+    - name: Checkout
+      uses: actions/checkout@v2
+    # https://github.com/gradle/wrapper-validation-action
+    - name: Validate Gradle Wrapper
+      uses: gradle/wrapper-validation-action@v1
+    # https://github.com/actions/cache
+    - name: Cache
+      uses: actions/cache@v1
+      with:
+        path: ~/.gradle/caches
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+
+    - name: Linux
+      if: matrix.os == 'ubuntu-latest'
+      run: ./gradlew check --stacktrace
+    - name: Windows
+      if: matrix.os == 'windows-latest'
+      run: ./gradlew check --stacktrace
+    - name: MacOS
+      if: matrix.os == 'macOS-latest'
+      run: ./gradlew check --stacktrace
