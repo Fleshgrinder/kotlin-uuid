@@ -6,6 +6,7 @@ on:
       - '*.md'
 
 env:
+  GRADLE_OPTS: -Dorg.gradle.daemon=false
   KONAN_DATA_DIR: ~/.gradle/konan
 
 jobs:
