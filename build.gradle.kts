@@ -1,5 +1,7 @@
+@file:Suppress("UNUSED_VARIABLE")
+
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.konan.target.HostManager
-import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTargetPreset
 
 plugins {
     id("idea")
@@ -43,11 +45,9 @@ kotlin {
         }
     }
 
-    val nativeTargets = mutableSetOf<String>()
-    presets.withType<KotlinNativeTargetPreset>().all {
-        nativeTargets.add(name)
-        targetFromPreset(this)
-    }
+    macosX64()
+    linuxX64()
+    mingwX64()
 
     targets.all {
         compilations.all {
@@ -57,7 +57,6 @@ kotlin {
         }
     }
 
-    @Suppress("UNUSED_VARIABLE")
     sourceSets {
         all {
             languageSettings.progressiveMode = true
@@ -112,12 +111,12 @@ kotlin {
         val nativeTest = maybeCreate("nativeTest")
         nativeTest.dependsOn(nonJvmTest)
 
-        nativeTargets.forEach {
-            targets.getByName(it) {
-                getByName("${it}Main") {
+        targets.forEach {
+            if (it is KotlinNativeTarget) {
+                getByName("${it.name}Main") {
                     dependsOn(if (ideaActive) nonJvmMain else nativeMain)
                 }
-                getByName("${it}Test") {
+                getByName("${it.name}Test") {
                     dependsOn(if (ideaActive) nonJvmTest else nativeTest)
                 }
             }

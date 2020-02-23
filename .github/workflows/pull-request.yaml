@@ -10,14 +10,16 @@ env:
   KONAN_DATA_DIR: ~/.gradle/konan
 
 jobs:
-  Validation:
+  validation:
+    name: Validation
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Gradle Wrapper Validation
         uses: gradle/wrapper-validation-action@v1
-  Test:
+  native-test:
+    name: Native Test
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -32,5 +34,51 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*gradle.*') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
-      - name: ${{ matrix.os }}
-        run: ./gradlew check --stacktrace
+      - name: Test
+        if: ${{ matrix.os }} == 'macOS-latest'
+        run: ./gradlew macosX64Test --stacktrace
+      - name: Test
+        if: ${{ matrix.os }} == 'ubuntu-latest'
+        run: ./gradlew linuxX64Test --stacktrace
+      - name: Test
+        if: ${{ matrix.os }} == 'windows-latest'
+        run: ./gradlew.bat mingwX64 --stacktrace
+  js-test:
+    name: JavaScript Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Gradle Cache
+        uses: actions/cache@v1
+        with:
+          path: ~/.gradle
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*gradle.*') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+      - name: Test
+        run: ./gradlew jsTest --stacktrace
+  java-test:
+    name: Java Test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java: [6, 7, 8, 9, 10, 11, 12, 13, 14-ea]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Gradle Cache
+        uses: actions/cache@v1
+        with:
+          path: ~/.gradle
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*gradle.*') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+      - name: Setup Java
+        uses: actions/setup-java@v1
+        with:
+          java-version: ${{ matrix.java }}
+          java-package: jre
+      - run: which -a java
+      - name: Test
+        run: ./gradlew jvmTest --stacktrace
