@@ -21,26 +21,19 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Gradle Wrapper Cache
+      - name: Gradle Cache
         uses: actions/cache@v1
         with:
-          path: .gradle/
-          key: gradle-wrapper-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}
+          path: ~/.gradle
+          key: ${{ runner.os }}-gradle-${{ hashFiles('.kotlin-version', '**/*gradle.*') }}
           restore-keys: |
-            gradle-wrapper-
+            ${{ runner.os }}-gradle-
       - name: Konan Cache
         uses: actions/cache@v1
         with:
-          path: ~/.konan/
+          path: ~/.konan
           key: ${{ runner.os }}-konan-${{ hashFiles('.kotlin-version') }}
           restore-keys: |
             ${{ runner.os }}-konan-
-      - name: Dependency Cache
-        uses: actions/cache@v1
-        with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle.kts') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
       - name: ${{ matrix.os }}
         run: ./gradlew check --stacktrace
