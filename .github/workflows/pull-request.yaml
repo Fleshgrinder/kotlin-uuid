@@ -26,15 +26,20 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*gradle.*') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
+      - name: Setup Java
+        uses: actions/setup-java@v1
+        with:
+          java-version: ${{ matrix.java }}
+          java-package: jre
       - name: Test
-        if: matrix.java == 11 && matrix.os == 'macOS-latest'
+        if: "matrix.java == '11' && matrix.os == 'macOS-latest'"
         run: ./gradlew macosX64Test --stacktrace
       - name: Test
-        if: matrix.java == 11 matrix.os == 'windows-latest'
+        if: "matrix.java == '11' matrix.os == 'windows-latest'"
         run: ./gradlew.bat mingwX64 --stacktrace
       - name: Test
-        if: matrix.java == 11 && matrix.os == 'ubuntu-latest'
+        if: "matrix.java == '11' && matrix.os == 'ubuntu-latest'"
         run: ./gradlew jsTest jvmTest linuxX64Test --stacktrace
       - name: JVM Test
-        if: matrix.java != 11 && matrix.os == 'ubuntu-latest'
-        run: which -a java && ./gradlew jvmTest --stacktrace
+        if: "matrix.java != '11' && matrix.os == 'ubuntu-latest'"
+        run: "which -a java && ./gradlew jvmTest --stacktrace"
