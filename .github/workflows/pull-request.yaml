@@ -14,19 +14,26 @@ jobs:
       - name: Gradle Wrapper Validation
         uses: gradle/wrapper-validation-action@v1
   Test:
-    runs-on: ${{matrix.os}}
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [macOS-latest, ubuntu-latest, windows-latest]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Cache
+      - name: Gradle Wrapper Cache
+        uses: actions/cache@v1
+        with:
+          path: .gradle/
+          key: gradle-wrapper-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-wrapper-
+      - name: Dependency Cache
         uses: actions/cache@v1
         with:
           path: ~/.gradle/caches
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle.kts') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
-      - name: ${{matrix.os}}
+      - name: ${{ matrix.os }}
         run: ./gradlew check --stacktrace
