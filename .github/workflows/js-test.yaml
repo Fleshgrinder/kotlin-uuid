@@ -1,0 +1,27 @@
+name: JS Test
+
+on:
+  pull_request:
+    paths-ignore:
+      - '*.md'
+
+env:
+  GRADLE_OPTS: -Dorg.gradle.daemon=false
+  KONAN_DATA_DIR: ~/.gradle/konan
+
+jobs:
+  job:
+    name: JS Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Gradle Cache
+        uses: actions/cache@v1
+        with:
+          path: ~/.gradle
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*gradle.*') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+      - name: Test
+        run: ./gradlew jsTest --stacktrace
