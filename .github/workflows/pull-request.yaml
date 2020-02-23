@@ -69,12 +69,12 @@ jobs:
         with:
           java-version: 13
       - name: Prepare Gradle JVM
-        run: echo "$JAVA_HOME" >~/.gradle-jvm
+        run: echo "$JAVA_HOME" >~/.gradle-jvm && cat ~/.gradle-jvm
       - name: Setup Java
         uses: actions/setup-java@v1
         with:
           java-version: ${{ matrix.java }}
       - name: Prepare Test JVM
-        run: echo "$JAVA_HOME" >~/.test-jvm
+        run: echo "$JAVA_HOME" >~/.test-jvm && cat ~/.test-jvm
       - name: Test
-        run: JAVA_HOME="$(cat ~/.gradle-jvm)" ./gradlew jvmTest --stacktrace -Dorg.gradle.java.home="$(cat ~/.test-jvm)"
+        run: cat ~/.gradle-jvm && cat ~/.test-jvm && JAVA_HOME="$(cat ~/.gradle-jvm)" ./gradlew jvmTest --stacktrace -Dorg.gradle.java.home="$(cat ~/.test-jvm)"
