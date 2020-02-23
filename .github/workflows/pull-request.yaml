@@ -10,8 +10,7 @@ env:
   KONAN_DATA_DIR: ~/.gradle/konan
 
 jobs:
-  native:
-    name: Native Test
+  Native:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -26,10 +25,13 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*gradle.*') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
+      - name: Setup Java
+        uses: actions/setup-java@v1
+        with:
+          java-version: 13
       - name: Test
         run: ./gradlew nativeTest --stacktrace
-  js:
-    name: JS Test
+  JavaScript:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -41,14 +43,17 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*gradle.*') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
+      - name: Setup Java
+        uses: actions/setup-java@v1
+        with:
+          java-version: 13
       - name: Test
         run: ./gradlew jsTest --stacktrace
-  jvm:
-    name: JVM Test
+  Java:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        java: [6, 8, 11, 14-ea]
+        java: [6, 8, 11, 13, 14-ea]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -59,11 +64,17 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*gradle.*') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
-      - run: which -a java && echo $JAVA_HOME
+      - name: Setup Java
+        uses: actions/setup-java@v1
+        with:
+          java-version: 13
+      - name: Prepare Gradle JVM
+        run: echo "$JAVA_HOME" >~/.gradle-jvm
       - name: Setup Java
         uses: actions/setup-java@v1
         with:
           java-version: ${{ matrix.java }}
-      - run: which -a java && echo $JAVA_HOME
-#      - name: Test
-#        run: JAVA_HOME=/usr/bin/java ./gradlew jvmTest --stacktrace -Dorg.gradle.java.home="$(command -v java)"
+      - name: Prepare Test JVM
+        run: echo "$JAVA_HOME" >~/.test-jvm
+      - name: Test
+        run: JAVA_HOME="$(cat ~/.gradle-jvm)" ./gradlew jvmTest --stacktrace -Dorg.gradle.java.home="$(cat ~/.test-jvm)"
