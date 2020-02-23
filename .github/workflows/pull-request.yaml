@@ -28,6 +28,13 @@ jobs:
           key: gradle-wrapper-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}
           restore-keys: |
             gradle-wrapper-
+      - name: Konan Cache
+        uses: actions/cache@v1
+        with:
+          path: ~/.konan/
+          key: ${{ runner.os }}-konan-${{ hashFiles('.kotlin-version') }}
+          restore-keys: |
+            ${{ runner.os }}-konan-
       - name: Dependency Cache
         uses: actions/cache@v1
         with:
