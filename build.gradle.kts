@@ -129,13 +129,11 @@ if (!ideaActive) {
     val nativeTest by tasks.registering {
         description = "Run the test for this platform."
         group = "verification"
-        doLast {
-            when {
-                HostManager.hostIsMac -> dependsOn("macosX64Test")
-                HostManager.hostIsLinux -> dependsOn("linuxX64Test")
-                HostManager.hostIsMingw -> dependsOn("mingwX64Test")
-                else -> error("Cannot test unknown host: ${HostManager.hostName}")
-            }
+        when {
+            HostManager.hostIsMac -> dependsOn("macosX64Test")
+            HostManager.hostIsLinux -> dependsOn("linuxX64Test")
+            HostManager.hostIsMingw -> dependsOn("mingwX64Test")
+            else -> error("Cannot test unknown host: ${HostManager.hostName}")
         }
     }
 }

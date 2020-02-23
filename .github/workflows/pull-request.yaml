@@ -59,5 +59,11 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*gradle.*') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
-      - name: Test
-        run: JAVA_HOME=/usr/bin/java ./gradlew jvmTest --stacktrace -Dorg.gradle.java.home="$(command -v java)"
+      - run: which -a java && echo $JAVA_HOME
+      - name: Setup Java
+        uses: actions/setup-java@v1
+        with:
+          java-version: ${{ matrix.java }}
+      - run: which -a java && echo $JAVA_HOME
+#      - name: Test
+#        run: JAVA_HOME=/usr/bin/java ./gradlew jvmTest --stacktrace -Dorg.gradle.java.home="$(command -v java)"
