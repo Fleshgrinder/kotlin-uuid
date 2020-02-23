@@ -36,7 +36,20 @@ public expect class Uuid {
     public override fun hashCode(): Int
 
     /**
-     * foo
+     * Format this UUID as string.
+     *
+     * The formal string representation of a UUID is specified in RFC&nbsp;4122
+     * on [page 4](https://tools.ietf.org/html/rfc4122#page-4) and defines that
+     * the 128 bit value of a UUID is formatted in five hexadecimal groups
+     * separated by a dash:
+     *
+     *     xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+     *
+     * The first group consists of eight hex digits, group two, three, and four
+     * of four and the fifth group of twelve. The hexadecimal digits `a` to `f`
+     * are always lowercase.
+     *
+     * The string is memoized to speed up operations that depend on it.
      */
     public override fun toString(): String
 }
@@ -44,9 +57,10 @@ public expect class Uuid {
 /**
  * Parse this string as UUID.
  *
- * The formal string representation of a UUID is specified in RFC&nbsp;4122 on
- * [page 4](https://tools.ietf.org/html/rfc4122#page-4) and defines that a UUID
- * is made up of five hexadecimal groups separated by a dash:
+ * The formal string representation of a UUID is specified in RFC&nbsp;4122
+ * on [page 4](https://tools.ietf.org/html/rfc4122#page-4) and defines that
+ * the 128 bit value of a UUID is formatted in five hexadecimal groups
+ * separated by a dash:
  *
  *     xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
  *
