@@ -10,11 +10,11 @@ env:
   KONAN_DATA_DIR: ~/.gradle/konan
 
 jobs:
-  Test:
+  native:
+    name: Native Test
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        java: [6, 8, 11, 14-ea]
         os: [macOS-latest, windows-latest, ubuntu-latest]
     steps:
       - name: Checkout
@@ -26,19 +26,38 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*gradle.*') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
-      - name: Setup Java
-        uses: actions/setup-java@v1
+      - name: Test
+        run: ./gradlew nativeTest --stacktrace
+  js:
+    name: JS Test
+    runs-on: ubuntu-latest
+    jobs:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Gradle Cache
+        uses: actions/cache@v1
         with:
-          java-version: ${{ matrix.java }}
+          path: ~/.gradle
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*gradle.*') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
       - name: Test
-        if: matrix.java == 11 && matrix.os == 'macOS-latest'
-        run: ./gradlew macosX64Test --stacktrace
+        run: ./gradlew jsTest --stacktrace
+  jvm:
+    name: JVM Test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java: [6, 8, 11, 14-ea]
+    jobs:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Gradle Cache
+        uses: actions/cache@v1
+        with:
+          path: ~/.gradle
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*gradle.*') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
       - name: Test
-        if: matrix.java == 11 && matrix.os == 'windows-latest'
-        run: ./gradlew.bat mingwX64 --stacktrace
-      - name: Test
-        if: matrix.java == 11 && matrix.os == 'ubuntu-latest'
-        run: ./gradlew jsTest jvmTest linuxX64Test --stacktrace
-      - name: JVM Test
-        if: matrix.java != 11 && matrix.os == 'ubuntu-latest'
-        run: which -a java && ./gradlew jvmTest --stacktrace
+        run: JAVA_HOME=/usr/bin/java ./gradlew jvmTest --stacktrace -Dorg.gradle.java.home="$(command -v java)"
