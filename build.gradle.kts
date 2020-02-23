@@ -34,9 +34,14 @@ kotlin {
     }
 
     js {
-        if (!ideaActive) browser()
-        nodejs()
+        browser()
+        nodejs {
+            testTask {
+                debug = false
+            }
+        }
     }
+
     jvm()
 
     val nativeTargets = mutableSetOf<String>()
@@ -92,9 +97,15 @@ kotlin {
 
         val jsMain by getting {
             dependsOn(nonJvmMain)
+            dependencies {
+                implementation(kotlin("stdlib-js"))
+            }
         }
         val jsTest by getting {
             dependsOn(nonJvmTest)
+            dependencies {
+                implementation(kotlin("test-js"))
+            }
         }
 
         val nativeMain = maybeCreate("nativeMain")
