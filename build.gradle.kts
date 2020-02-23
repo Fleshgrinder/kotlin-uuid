@@ -35,7 +35,13 @@ kotlin {
         }
     }
 
-    jvm()
+    jvm {
+        compilations.all {
+            kotlinOptions {
+                System.getenv("KOTLIN_JAVA_HOME")?.let { jdkHome = it }
+            }
+        }
+    }
 
     if (ideaActive) {
         when {
