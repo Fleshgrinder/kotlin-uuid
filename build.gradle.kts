@@ -1,49 +1,74 @@
+import org.gradle.internal.os.OperatingSystem
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTargetPreset
+
 plugins {
-    kotlin("multiplatform") version "1.3.70-eap-184"
+    id("idea")
+    kotlin("multiplatform") version "1.3.61"
 }
 
-group = "kotlin"
-version = "0.1.0-dev"
+allprojects {
+    apply(plugin = "idea")
+    idea {
+        module {
+            isDownloadJavadoc = false
+            isDownloadSources = true
+        }
+    }
 
-repositories {
-    jcenter()
-    maven("https://dl.bintray.com/kotlin/kotlin-eap")
+    repositories {
+        jcenter()
+    }
 }
 
 kotlin {
-    // https://kotlinlang.org/docs/reference/building-mpp-with-gradle.html#supported-platforms
-    js { browser(); nodejs() }
+    val ideaActive = System.getProperty("idea.active") == "true"
+
+    if (ideaActive) {
+        val os = OperatingSystem.current()
+        when {
+            os.isMacOsX -> macosX64("native")
+            os.isLinux -> linuxX64("native")
+            os.isWindows -> mingwX64("native")
+            else -> error("Cannot prepare native target for unknown OS '$os'")
+        }
+    }
+
+    js {
+        if (!ideaActive) browser()
+        nodejs()
+    }
     jvm()
+
+    val nativeTargets = mutableSetOf<String>()
+    presets.withType<KotlinNativeTargetPreset>().all {
+        nativeTargets.add(name)
+        targetFromPreset(this)
+    }
 
     targets.all {
         compilations.all {
             kotlinOptions {
-                allWarningsAsErrors = false
-                freeCompilerArgs = listOf("-progressive", "-Xallow-kotlin-package", "-Xnew-inference")
+                allWarningsAsErrors = true
             }
         }
     }
 
+    @Suppress("UNUSED_VARIABLE")
     sourceSets {
-        commonMain {
+        all {
+            languageSettings.progressiveMode = true
+        }
+
+        val commonMain by getting {
             dependencies {
                 implementation(kotlin("stdlib-common"))
             }
         }
-        commonTest {
+        val commonTest by getting {
             dependencies {
                 implementation(kotlin("test-common"))
                 implementation(kotlin("test-annotations-common"))
             }
-        }
-
-        val jsMain by getting {
-            dependencies {
-                implementation(kotlin("stdlib-js"))
-            }
-        }
-        val jsTest by getting {
-
         }
 
         val jvmMain by getting {
@@ -55,10 +80,36 @@ kotlin {
             dependencies {
                 implementation(kotlin("test"))
                 implementation(kotlin("test-junit"))
+            }
+        }
 
-                val junitVersion = "5.6.0"
-                implementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
-                runtimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
+        val nonJvmMain by creating {
+            dependsOn(commonMain)
+        }
+        val nonJvmTest by creating {
+            dependsOn(commonTest)
+        }
+
+        val jsMain by getting {
+            dependsOn(nonJvmMain)
+        }
+        val jsTest by getting {
+            dependsOn(nonJvmTest)
+        }
+
+        val nativeMain = maybeCreate("nativeMain")
+        nativeMain.dependsOn(nonJvmMain)
+        val nativeTest = maybeCreate("nativeTest")
+        nativeTest.dependsOn(nonJvmTest)
+
+        nativeTargets.forEach {
+            targets.getByName(it) {
+                getByName("${it}Main") {
+                    dependsOn(nativeMain)
+                }
+                getByName("${it}Test") {
+                    dependsOn(nativeTest)
+                }
             }
         }
     }
