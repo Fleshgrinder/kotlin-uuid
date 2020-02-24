@@ -92,21 +92,34 @@ public actual class Uuid @PublishedApi internal constructor(
         @Suppress("NEWER_VERSION_IN_SINCE_KOTLIN")
         public fun of(bytes: ByteArray): Uuid =
             bytes.toUuid()
+
+        /**
+         * Create new UUID instance with the given 64 bit [most][msb] and
+         * [least][lsb] significant little endian bits.
+         *
+         * Use `new Uuid(0, 0)` to construct and instance with the default big
+         * endian byte order.
+         */
+        @JvmStatic
+        // https://youtrack.jetbrains.com/issue/KT-36439
+        @SinceKotlin("999999.999999")
+        @Suppress("NEWER_VERSION_IN_SINCE_KOTLIN")
+        public fun ofLittleEndian(msb: Long, lsb: Long): Uuid =
+            uuidOfLittleEndian(msb, lsb)
     }
 }
 
 @JvmSynthetic
-@Suppress("NON_PUBLIC_CALL_FROM_PUBLIC_INLINE", "NOTHING_TO_INLINE")
-public actual inline fun ByteArray.toUuidOrNull(): Uuid? =
-    if (size == 16) Uuid(msb(), lsb())
+public actual fun ByteArray.toUuidOrNull(): Uuid? =
+    if (size == 16) Uuid(toLong(0, 8), toLong(8, 16))
     else null
 
 @JvmSynthetic
 public actual fun String.toUuid(): Uuid =
-    if (length == 36) Uuid(segmentToLong(0, 19), segmentToLong(19, 36))
+    if (length == 36) Uuid(toLong(0, 19), toLong(19, 36))
     else throw IllegalArgumentException("Invalid UUID string, expected exactly 36 characters but got $length: $this")
 
-private fun String.segmentToLong(start: Int, end: Int): Long {
+private fun String.toLong(start: Int, end: Int): Long {
     var result = 0L
 
     var i = start
@@ -144,10 +157,12 @@ private fun String.segmentToLong(start: Int, end: Int): Long {
     return result
 }
 
+@JvmSynthetic
 @Suppress("NOTHING_TO_INLINE")
 public actual inline fun uuidOf(msb: Long, lsb: Long): Uuid =
     Uuid(msb, lsb)
 
+@JvmSynthetic
 @Suppress("NOTHING_TO_INLINE")
 public actual inline fun uuidOfLittleEndian(msb: Long, lsb: Long): Uuid =
     Uuid(reverseBytes(msb), reverseBytes(lsb))

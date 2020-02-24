@@ -82,8 +82,12 @@ esac
 
 CLASSPATH=$APP_HOME/gradle/wrapper/gradle-wrapper.jar
 
-# Determine the Java command to use to start the JVM.
-if [ -n "$JAVA_HOME" ] ; then
+# Custom logic for GitHub Actions. We want to use the latest LTS version of Java
+# for Gradle to get maximum speed and because Gradle cannot be executed with
+# Java 6.
+if [ "${JAVA_HOME_11_X64:-}" != '' ]; then
+    JAVACMD="$JAVA_HOME_11_X64/bin/java"
+elif [ -n "$JAVA_HOME" ] ; then
     if [ -x "$JAVA_HOME/jre/sh/java" ] ; then
         # IBM's JDK on AIX uses strange locations for the executables
         JAVACMD="$JAVA_HOME/jre/sh/java"

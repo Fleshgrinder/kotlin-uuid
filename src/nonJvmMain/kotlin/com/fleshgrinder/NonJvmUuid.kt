@@ -36,10 +36,10 @@ public actual class Uuid @PublishedApi internal constructor(
     init { freeze() }
 
     public actual val msb: Long
-        get() = bytes.msb()
+        get() = bytes.toLong(0, 8)
 
     public actual val lsb: Long
-        get() = bytes.lsb()
+        get() = bytes.toLong(8, 16)
 
     public actual override fun equals(other: Any?): Boolean =
         other is Uuid && bytes.contentEquals(other.bytes)

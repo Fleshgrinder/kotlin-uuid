@@ -6,71 +6,57 @@ on:
       - '*.md'
 
 env:
-  GRADLE_OPTS: -Dorg.gradle.console=plain
+  GRADLE_OPTS: -Dorg.gradle.console=plain -Xmx2048m -Xms1024m
 
-# GitHub Actions has no possibility of running steps in parallel and using the
-# matrix is not a good idea because it makes it impossible for us to cache our
-# dependencies. CircleCI would have all of this but their MacOS machines are
-# not available without asking them (which I probably will do once this library
-# gets some traction).
-#
-# TODO ask CircleCI if they are willing to give us Mac runners.
 jobs:
-  test:
-    runs-on: ${{ matrix.os }}
+  macos:
+    runs-on: macOS-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: ./gradlew macosX64Test --stacktrace
+  ios:
+    runs-on: macOS-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: ./gradlew iosTest --stacktrace
+  tvos:
+    runs-on: macOS-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: ./gradlew tvosTest --stacktrace
+  watchos:
+    runs-on: macOS-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: ./gradlew watchosTest --stacktrace
+  mingw:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: ./gradlew mingwX64Test --stacktrace
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: ./gradlew linuxX64Test --stacktrace
+  js-browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: ./gradlew jsBrowserTest --stacktrace
+  js-node:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: ./gradlew jsNodeTest --stacktrace
+  jvm:
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        os: [ macOS-latest, windows-latest, ubuntu-latest ]
+        java: [6, 8, 11, 13, 14-ea]
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      # Caching was dropped because they grow so big with all the dependencies
-      # that it is faster to simply download them, which is done in parallel in
-      # contrast to the cache checkout that is completely sync (download huge
-      # tar and decompress it).
-
-      # region java
-      # https://github.com/actions/setup-java/issues/44
-      - name: Setup Java 6
-        if: matrix.os != 'macOS-latest'
-        uses: actions/setup-java@v1
-        with: { java-version: 6 }
-      - name: Setup Java 7
-        uses: actions/setup-java@v1
-        with: { java-version: 7 }
-      - name: Setup Java 8
-        uses: actions/setup-java@v1
-        with: { java-version: 8 }
-      - name: Setup Java 11
-        uses: actions/setup-java@v1
-        with: { java-version: 11 }
-      - name: Setup Java 14-ea
-        uses: actions/setup-java@v1
-        with: { java-version: 14-ea }
-      - name: Setup Java 13
-        uses: actions/setup-java@v1
-        with: { java-version: 13 }
-      # endregion java
-
-      - name: JVM Test
-        run: ./gradlew jvmMatrixTest --stacktrace
-      - name: JS Browser Test
-        if: matrix.os != 'macOS-latest'
-        run: ./gradlew jsBrowserTest --stacktrace
-      - name: JS Node Test
-        run: ./gradlew jsNodeTest --stacktrace
-      - name: Mac Test
-        if: matrix.os == 'macOS-latest'
-        run: ./gradlew macosX64Test iosTest tvosTest watchosTest --stacktrace
-      - name: Linux Test
-        if: matrix.os == 'ubuntu-latest'
-        run: ./gradlew linuxX64Test --stacktrace
-      - name: Windows Test
-        if: matrix.os == 'windows-latest'
-        run: ./gradlew mingwX64Test --stacktrace
-
-      # We need to stop all Gradle daemons at the end to ensure that we are not
-      # going to persist lock files or other unwanted stuff in our cache.
-      - name: Stop Gradle
-        run: ./gradlew --stop
+      - uses: actions/checkout@v2
+      - uses: actions/setup-java@v1
+        with:
+          java-version: ${{ matrix.java }}
+      - run: ./gradlew jvmTest --stacktrace

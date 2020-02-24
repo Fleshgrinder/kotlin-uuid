@@ -161,24 +161,11 @@ internal inline fun byteArrayOf(msb: Long, lsb: Long): ByteArray =
         lsb.toByte()
     )
 
-@Suppress("NOTHING_TO_INLINE")
-internal inline fun ByteArray.msb(): Long =
-    ((this[0].toLong() and 0xff) shl 56) or
-        ((this[1].toLong() and 0xff) shl 48) or
-        ((this[2].toLong() and 0xff) shl 40) or
-        ((this[3].toLong() and 0xff) shl 32) or
-        ((this[4].toLong() and 0xff) shl 24) or
-        ((this[5].toLong() and 0xff) shl 16) or
-        ((this[6].toLong() and 0xff) shl 8) or
-        (this[7].toLong() and 0xff)
-
-@Suppress("NOTHING_TO_INLINE")
-internal inline fun ByteArray.lsb(): Long =
-    ((this[8].toLong() and 0xff) shl 56) or
-        ((this[9].toLong() and 0xff) shl 48) or
-        ((this[10].toLong() and 0xff) shl 40) or
-        ((this[11].toLong() and 0xff) shl 32) or
-        ((this[12].toLong() and 0xff) shl 24) or
-        ((this[13].toLong() and 0xff) shl 16) or
-        ((this[14].toLong() and 0xff) shl 8) or
-        (this[15].toLong() and 0xff)
+internal fun ByteArray.toLong(start: Int, end: Int): Long {
+    var result = 0L
+    var i = start
+    do {
+        result = (result shl 8) or (this[i].toLong() and 0xff)
+    } while (++i < end)
+    return result
+}
