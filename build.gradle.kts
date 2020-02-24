@@ -131,6 +131,10 @@ kotlin {
     }
 }
 
+val jvmTest by tasks.getting(Test::class) {
+    System.getenv("JAVA_TEST_HOME").let { executable = "$it/bin/java" }
+}
+
 if (!ideaActive) {
     val nativeTest by tasks.registering {
         description = "Run the test for this platform."
