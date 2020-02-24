@@ -1,14 +1,14 @@
 package com.fleshgrinder
 
-public actual class Uuid internal constructor(private val bytes: ByteArray) {
+public actual class Uuid @PublishedApi internal constructor(
+    private val bytes: ByteArray
+) {
     // Kotlin‘s memory model requires that we freeze this object for safe
     // sharing across threads. This requirement forces us to eagerly memoize
     // both the hash and the string representation of the UUID because we cannot
     // create them lazily later on. The memory consumption is small and the gain
     // in performance is substantial enough to warrant it.
-
     private val hash = bytes.contentHashCode()
-
     private val string = String(
         charArrayOf(
             bytes.msb(0), bytes.lsb(0),
@@ -33,10 +33,13 @@ public actual class Uuid internal constructor(private val bytes: ByteArray) {
             bytes.msb(15), bytes.lsb(15)
         )
     )
+    init { freeze() }
 
-    init {
-        freeze()
-    }
+    public actual val msb: Long
+        get() = bytes.msb()
+
+    public actual val lsb: Long
+        get() = bytes.lsb()
 
     public actual override fun equals(other: Any?): Boolean =
         other is Uuid && bytes.contentEquals(other.bytes)
@@ -85,7 +88,8 @@ public actual class Uuid internal constructor(private val bytes: ByteArray) {
 }
 
 public actual fun ByteArray.toUuidOrNull(): Uuid? =
-    if (size == 16) Uuid(this) else null
+    if (size == 16) Uuid(this)
+    else null
 
 public actual fun String.toUuid(): Uuid {
     require(length == 36) {
@@ -145,3 +149,26 @@ private fun String.hex(i: Int): Int =
             "Invalid UUID string, encountered non-hexadecimal digit `${get(i)}`at index $i in: $this"
         )
     }
+
+public actual fun uuidOf(msb: Long, lsb: Long): Uuid =
+    Uuid(byteArrayOf(msb, lsb))
+
+public actual fun uuidOfLittleEndian(msb: Long, lsb: Long): Uuid =
+    Uuid(byteArrayOf(
+        msb.toByte(),
+        (msb ushr 8).toByte(),
+        (msb ushr 16).toByte(),
+        (msb ushr 24).toByte(),
+        (msb ushr 32).toByte(),
+        (msb ushr 40).toByte(),
+        (msb ushr 48).toByte(),
+        (msb ushr 56).toByte(),
+        lsb.toByte(),
+        (lsb ushr 8).toByte(),
+        (lsb ushr 16).toByte(),
+        (lsb ushr 24).toByte(),
+        (lsb ushr 32).toByte(),
+        (lsb ushr 40).toByte(),
+        (lsb ushr 48).toByte(),
+        (lsb ushr 56).toByte()
+    ))
