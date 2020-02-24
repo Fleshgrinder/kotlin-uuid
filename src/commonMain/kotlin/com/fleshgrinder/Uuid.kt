@@ -36,6 +36,14 @@ public expect class Uuid {
     public override fun hashCode(): Int
 
     /**
+     * Convert this UUID to an array of bytes.
+     *
+     * A UUID is a 128 bit unsigned big endian integer that can be represented
+     * with 16 bytes.
+     */
+    public fun toByteArray(): ByteArray
+
+    /**
      * Format this UUID as string.
      *
      * The formal string representation of a UUID is specified in RFC&nbsp;4122
@@ -53,6 +61,27 @@ public expect class Uuid {
      */
     public override fun toString(): String
 }
+
+/**
+ * Convert this array of bytes to a UUID.
+ *
+ * A UUID is a 128 bit unsigned big endian integer that can be represented with
+ * 16 bytes.
+ *
+ * @throws IllegalArgumentException if the array is not exactly 16 bytes long.
+ */
+public fun ByteArray.toUuid(): Uuid =
+    requireNotNull(toUuidOrNull()) {
+        "Invalid UUID value, expected exactly 16 bytes but got: $size"
+    }
+
+/**
+ * Try to convert this array of bytes to a UUID and return `null` if it fails.
+ *
+ * A UUID is a 128 bit unsigned big endian integer that can be represented with
+ * 16 bytes.
+ */
+public expect fun ByteArray.toUuidOrNull(): Uuid?
 
 /**
  * Parse this string as UUID.

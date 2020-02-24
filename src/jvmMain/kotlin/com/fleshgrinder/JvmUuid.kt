@@ -21,6 +21,30 @@ public actual class Uuid internal constructor(private val msb: Long, private val
     public actual override fun hashCode(): Int =
         (msb or lsb).let { (it shr 32).toInt() or it.toInt() }
 
+    // No need for memoization as this is a rare procedure, and it is fast. Note
+    // that we would need to allocate even with memoization because we would
+    // need to create a copy of the array that we memoized, otherwise it could
+    // be mutated by the user.
+    public actual fun toByteArray(): ByteArray =
+        byteArrayOf(
+            (msb ushr 56).toByte(),
+            (msb ushr 48).toByte(),
+            (msb ushr 40).toByte(),
+            (msb ushr 32).toByte(),
+            (msb ushr 24).toByte(),
+            (msb ushr 16).toByte(),
+            (msb ushr 8).toByte(),
+            msb.toByte(),
+            (lsb ushr 56).toByte(),
+            (lsb ushr 48).toByte(),
+            (lsb ushr 40).toByte(),
+            (lsb ushr 32).toByte(),
+            (lsb ushr 24).toByte(),
+            (lsb ushr 16).toByte(),
+            (lsb ushr 8).toByte(),
+            lsb.toByte()
+        )
+
     public actual override fun toString(): String =
         string
 
@@ -51,10 +75,59 @@ public actual class Uuid internal constructor(private val msb: Long, private val
         // https://youtrack.jetbrains.com/issue/KT-36439
         @SinceKotlin("999999.999999")
         @Suppress("NEWER_VERSION_IN_SINCE_KOTLIN")
-        public fun parse(s: String): Uuid =
-            s.toUuid()
+        public fun parse(string: String): Uuid =
+            string.toUuid()
+
+        /**
+         * Convert this array of bytes to a UUID.
+         *
+         * A UUID is a 128 bit unsigned integer that can be represented with 16
+         * bytes. This method will check if the value is 16 bytes long and
+         * interpret the contents as a 128 bit big endian unsigned integer to
+         * construct the instance.
+         *
+         * ```java
+         * final Uuid uuid = Uuid.of(new byte[]{
+         *     (byte) 0xf8, (byte) 0x1d, (byte) 0x4f, (byte) 0xae,
+         *     (byte) 0x7d, (byte) 0xec, (byte) 0x11, (byte) 0xd0,
+         *     (byte) 0xa7, (byte) 0x65, (byte) 0x00, (byte) 0xa0,
+         *     (byte) 0xc9, (byte) 0x1e, (byte) 0x6b, (byte) 0xf6
+         * });
+         * System.out.println(uuid);
+         * // f81d4fae-7dec-11d0-a765-00a0c91e6bf6
+         * ```
+         *
+         * @throws IllegalArgumentException if the array is not exactly 16 in size.
+         */
+        @JvmStatic
+        // https://youtrack.jetbrains.com/issue/KT-36439
+        @SinceKotlin("999999.999999")
+        @Suppress("NEWER_VERSION_IN_SINCE_KOTLIN")
+        public fun of(bytes: ByteArray): Uuid =
+            bytes.toUuid()
     }
 }
+
+@JvmSynthetic
+public actual fun ByteArray.toUuidOrNull(): Uuid? =
+    if (size != 16) null else Uuid(
+        ((this[0].toLong() and 0xff) shl 56) or
+            ((this[1].toLong() and 0xff) shl 48) or
+            ((this[2].toLong() and 0xff) shl 40) or
+            ((this[3].toLong() and 0xff) shl 32) or
+            ((this[4].toLong() and 0xff) shl 24) or
+            ((this[5].toLong() and 0xff) shl 16) or
+            ((this[6].toLong() and 0xff) shl 8) or
+            (this[7].toLong() and 0xff),
+        ((this[8].toLong() and 0xff) shl 56) or
+            ((this[9].toLong() and 0xff) shl 48) or
+            ((this[10].toLong() and 0xff) shl 40) or
+            ((this[11].toLong() and 0xff) shl 32) or
+            ((this[12].toLong() and 0xff) shl 24) or
+            ((this[13].toLong() and 0xff) shl 16) or
+            ((this[14].toLong() and 0xff) shl 8) or
+            (this[15].toLong() and 0xff)
+    )
 
 @JvmSynthetic
 public actual fun String.toUuid(): Uuid =

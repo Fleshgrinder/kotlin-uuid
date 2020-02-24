@@ -44,6 +44,9 @@ public actual class Uuid internal constructor(private val bytes: ByteArray) {
     public actual override fun hashCode(): Int =
         hash
 
+    public actual fun toByteArray(): ByteArray =
+        bytes.copyOf()
+
     public actual override fun toString(): String =
         string
 
@@ -80,6 +83,9 @@ public actual class Uuid internal constructor(private val bytes: ByteArray) {
             else -> error("Internal error: encountered non-hexadecimal digit $n")
         }
 }
+
+public actual fun ByteArray.toUuidOrNull(): Uuid? =
+    if (size == 16) Uuid(this) else null
 
 public actual fun String.toUuid(): Uuid {
     require(length == 36) {
