@@ -1,39 +1,84 @@
-name: PR
+name: pr
 
 on:
   pull_request:
     paths-ignore:
       - '*.md'
 
+env:
+  GRADLE_OPTS: -Dorg.gradle.console=plain
+
 jobs:
-  Validation:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Gradle Wrapper Validation
-        uses: gradle/wrapper-validation-action@v1
-  Test:
+  test:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macOS-latest, ubuntu-latest, windows-latest]
+        os: [ macOS-latest, windows-latest, ubuntu-latest ]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Gradle Wrapper Cache
+
+      # region cache
+      - name: Gradle Cache
         uses: actions/cache@v1
         with:
-          path: .gradle/
-          key: gradle-wrapper-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}
-          restore-keys: |
-            gradle-wrapper-
-      - name: Dependency Cache
-        uses: actions/cache@v1
-        with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle.kts') }}
+          path: ~/.gradle
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*gradle.*') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
-      - name: ${{ matrix.os }}
-        run: ./gradlew check --stacktrace
+      # TODO KONAN_DATA_DIR might allow us a combined cache in the future.
+      - name: Konan Cache
+        uses: actions/cache@v1
+        with:
+          path: ~/.konan
+          key: ${{ runner.os }}-konan-${{ hashFiles('**/*gradle.*') }}
+          restore-keys: |
+            ${{ runner.os }}-konan-
+      # endregion cache
+
+      # region java
+      # https://github.com/actions/setup-java/issues/44
+      - name: Setup Java 6
+        if: matrix.os != 'macOS-latest'
+        uses: actions/setup-java@v1
+        with: { java-version: 6 }
+      - name: Setup Java 7
+        uses: actions/setup-java@v1
+        with: { java-version: 7 }
+      - name: Setup Java 8
+        uses: actions/setup-java@v1
+        with: { java-version: 8 }
+      - name: Setup Java 11
+        uses: actions/setup-java@v1
+        with: { java-version: 11 }
+      - name: Setup Java 14-ea
+        uses: actions/setup-java@v1
+        with: { java-version: 14-ea }
+      - name: Setup Java 13
+        uses: actions/setup-java@v1
+        with: { java-version: 13 }
+      # endregion java
+
+      - name: JVM Test
+        run: ./gradlew jvmMatrixTest --stacktrace
+      # TODO Chrome headless does not work properly on MacOS.
+      - name: JS Test
+        if: matrix.os != 'macOS-latest'
+        run: ./gradlew jsTest --stacktrace
+      - name: JS Test
+        if: matrix.os == 'macOS-latest'
+        run: ./gradlew jsNodeTest --stacktrace
+      - name: MacOS Test
+        if: matrix.os == 'macOS-latest'
+        run: ./gradlew macosX64Test iosTest tvosTest watchosTest --stacktrace
+      - name: Linux Test
+        if: matrix.os == 'ubuntu-latest'
+        run: ./gradlew linuxX64Test --stacktrace
+      - name: Windows Test
+        if: matrix.os == 'windows-latest'
+        run: ./gradlew mingwX64Test --stacktrace
+
+      # We need to stop all Gradle daemons at the end to ensure that we are not
+      # going to persist lock files or other unwanted stuff in our cache.
+      - name: Stop Gradle
+        run: ./gradlew --stop
