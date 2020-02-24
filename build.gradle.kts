@@ -26,6 +26,9 @@ allprojects {
 val ideaActive = System.getProperty("idea.active") == "true"
 
 kotlin {
+    // TODO Kotlin has support for many more targets but we do not know how to
+    //   test them. Examples: wasm, linux other than x64, mingw x86
+
     js {
         browser()
         nodejs {
@@ -40,7 +43,6 @@ kotlin {
             }
         }
     }
-    wasm32() // TODO how to unit test?
 
     jvm {
         compilations.all {
@@ -65,12 +67,7 @@ kotlin {
     watchos()
 
     linuxX64()
-    linuxMipsel32()
-    linuxMips32()
-    linuxArm64()
-    linuxArm32Hfp()
 
-    mingwX86()
     mingwX64()
 
     targets.all {
