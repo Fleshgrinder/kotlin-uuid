@@ -5,9 +5,6 @@ on:
     paths-ignore:
       - '*.md'
 
-env:
-  KONAN_DATA_DIR: ~/.gradle/konan
-
 jobs:
   test:
     runs-on: ${{ matrix.os }}
@@ -24,6 +21,14 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*gradle.*') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
+      # TODO KONAN_DATA_DIR might allow us a combined cache in the future.
+      - name: Konan Cache
+        uses: actions/cache@v1
+        with:
+          path: ~/.konan
+          key: ${{ runner.os }}-konan-${{ hashFiles('**/*gradle.*') }}
+          restore-keys: |
+            ${{ runner.os }}-konan-
       # https://github.com/actions/setup-java/issues/44
       - name: Setup Java 6
         if: matrix.os != 'macOS-latest'
