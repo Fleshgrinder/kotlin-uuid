@@ -8,6 +8,13 @@ on:
 env:
   GRADLE_OPTS: -Dorg.gradle.console=plain
 
+# GitHub Actions has no possibility of running steps in parallel and using the
+# matrix is not a good idea because it makes it impossible for us to cache our
+# dependencies. CircleCI would have all of this but their MacOS machines are
+# not available without asking them (which I probably will do once this library
+# gets some traction).
+#
+# TODO ask CircleCI if they are willing to give us Mac runners.
 jobs:
   test:
     runs-on: ${{ matrix.os }}
@@ -18,23 +25,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      # region cache
-      - name: Gradle Cache
-        uses: actions/cache@v1
-        with:
-          path: ~/.gradle
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*gradle.*') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-      # TODO KONAN_DATA_DIR might allow us a combined cache in the future.
-      - name: Konan Cache
-        uses: actions/cache@v1
-        with:
-          path: ~/.konan
-          key: ${{ runner.os }}-konan-${{ hashFiles('**/*gradle.*') }}
-          restore-keys: |
-            ${{ runner.os }}-konan-
-      # endregion cache
+      # Caching was dropped because they grow so big with all the dependencies
+      # that it is faster to simply download them, which is done in parallel in
+      # contrast to the cache checkout that is completely sync (download huge
+      # tar and decompress it).
 
       # region java
       # https://github.com/actions/setup-java/issues/44
@@ -61,14 +55,12 @@ jobs:
 
       - name: JVM Test
         run: ./gradlew jvmMatrixTest --stacktrace
-      # TODO Chrome headless does not work properly on MacOS.
-      - name: JS Test
+      - name: JS Browser Test
         if: matrix.os != 'macOS-latest'
-        run: ./gradlew jsTest --stacktrace
-      - name: JS Test
-        if: matrix.os == 'macOS-latest'
+        run: ./gradlew jsBrowserTest --stacktrace
+      - name: JS Node Test
         run: ./gradlew jsNodeTest --stacktrace
-      - name: MacOS Test
+      - name: Mac Test
         if: matrix.os == 'macOS-latest'
         run: ./gradlew macosX64Test iosTest tvosTest watchosTest --stacktrace
       - name: Linux Test

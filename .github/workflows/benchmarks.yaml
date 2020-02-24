@@ -1,0 +1,25 @@
+name: benchmarks
+
+on:
+  push:
+    branches:
+      - master
+
+env:
+  GRADLE_OPTS: -Dorg.gradle.console=plain
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java: [8, 11, 14-ea]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup Java ${{ matrix.java }}
+        uses: actions/setup-java@v1
+        with:
+          java-version: ${{ matrix.java }}
+      - name: Benchmark ${{ matrix.java }}
+        run: ./gradlew jmh --stacktrace
