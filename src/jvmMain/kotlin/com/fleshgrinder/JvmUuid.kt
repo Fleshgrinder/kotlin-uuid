@@ -2,10 +2,14 @@
 
 package com.fleshgrinder
 
+import java.lang.Long.reverseBytes
 import java.util.UUID
 import kotlin.LazyThreadSafetyMode.PUBLICATION
 
-public actual class Uuid internal constructor(private val msb: Long, private val lsb: Long) {
+public actual class Uuid @PublishedApi internal constructor(
+    public actual val msb: Long,
+    public actual val lsb: Long
+) {
     /**
      * We cannot beat Java‘s UUID string formatter on newer versions because it
      * uses a lot of internal machinery, that is not available to us, to build
@@ -26,24 +30,7 @@ public actual class Uuid internal constructor(private val msb: Long, private val
     // need to create a copy of the array that we memoized, otherwise it could
     // be mutated by the user.
     public actual fun toByteArray(): ByteArray =
-        byteArrayOf(
-            (msb ushr 56).toByte(),
-            (msb ushr 48).toByte(),
-            (msb ushr 40).toByte(),
-            (msb ushr 32).toByte(),
-            (msb ushr 24).toByte(),
-            (msb ushr 16).toByte(),
-            (msb ushr 8).toByte(),
-            msb.toByte(),
-            (lsb ushr 56).toByte(),
-            (lsb ushr 48).toByte(),
-            (lsb ushr 40).toByte(),
-            (lsb ushr 32).toByte(),
-            (lsb ushr 24).toByte(),
-            (lsb ushr 16).toByte(),
-            (lsb ushr 8).toByte(),
-            lsb.toByte()
-        )
+        byteArrayOf(msb, lsb)
 
     public actual override fun toString(): String =
         string
@@ -105,36 +92,34 @@ public actual class Uuid internal constructor(private val msb: Long, private val
         @Suppress("NEWER_VERSION_IN_SINCE_KOTLIN")
         public fun of(bytes: ByteArray): Uuid =
             bytes.toUuid()
+
+        /**
+         * Create new UUID instance with the given 64 bit [most][msb] and
+         * [least][lsb] significant little endian bits.
+         *
+         * Use `new Uuid(0, 0)` to construct and instance with the default big
+         * endian byte order.
+         */
+        @JvmStatic
+        // https://youtrack.jetbrains.com/issue/KT-36439
+        @SinceKotlin("999999.999999")
+        @Suppress("NEWER_VERSION_IN_SINCE_KOTLIN")
+        public fun ofLittleEndian(msb: Long, lsb: Long): Uuid =
+            uuidOfLittleEndian(msb, lsb)
     }
 }
 
 @JvmSynthetic
 public actual fun ByteArray.toUuidOrNull(): Uuid? =
-    if (size != 16) null else Uuid(
-        ((this[0].toLong() and 0xff) shl 56) or
-            ((this[1].toLong() and 0xff) shl 48) or
-            ((this[2].toLong() and 0xff) shl 40) or
-            ((this[3].toLong() and 0xff) shl 32) or
-            ((this[4].toLong() and 0xff) shl 24) or
-            ((this[5].toLong() and 0xff) shl 16) or
-            ((this[6].toLong() and 0xff) shl 8) or
-            (this[7].toLong() and 0xff),
-        ((this[8].toLong() and 0xff) shl 56) or
-            ((this[9].toLong() and 0xff) shl 48) or
-            ((this[10].toLong() and 0xff) shl 40) or
-            ((this[11].toLong() and 0xff) shl 32) or
-            ((this[12].toLong() and 0xff) shl 24) or
-            ((this[13].toLong() and 0xff) shl 16) or
-            ((this[14].toLong() and 0xff) shl 8) or
-            (this[15].toLong() and 0xff)
-    )
+    if (size == 16) Uuid(toLong(0, 8), toLong(8, 16))
+    else null
 
 @JvmSynthetic
 public actual fun String.toUuid(): Uuid =
-    if (length == 36) Uuid(segmentToLong(0, 19), segmentToLong(19, 36))
+    if (length == 36) Uuid(toLong(0, 19), toLong(19, 36))
     else throw IllegalArgumentException("Invalid UUID string, expected exactly 36 characters but got $length: $this")
 
-private fun String.segmentToLong(start: Int, end: Int): Long {
+private fun String.toLong(start: Int, end: Int): Long {
     var result = 0L
 
     var i = start
@@ -171,3 +156,13 @@ private fun String.segmentToLong(start: Int, end: Int): Long {
 
     return result
 }
+
+@JvmSynthetic
+@Suppress("NOTHING_TO_INLINE")
+public actual inline fun uuidOf(msb: Long, lsb: Long): Uuid =
+    Uuid(msb, lsb)
+
+@JvmSynthetic
+@Suppress("NOTHING_TO_INLINE")
+public actual inline fun uuidOfLittleEndian(msb: Long, lsb: Long): Uuid =
+    Uuid(reverseBytes(msb), reverseBytes(lsb))

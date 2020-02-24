@@ -4,9 +4,11 @@ on:
   push:
     branches:
       - master
+    paths-ignore:
+      - '*.md'
 
 env:
-  GRADLE_OPTS: -Dorg.gradle.console=plain
+  GRADLE_OPTS: -Dorg.gradle.console=plain -Xmx2048m -Xms1024m
 
 jobs:
   benchmark:

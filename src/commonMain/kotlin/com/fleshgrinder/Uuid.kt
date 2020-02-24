@@ -21,6 +21,18 @@ package com.fleshgrinder
  */
 public expect class Uuid {
     /**
+     * Get the most significant 64 bits of the UUIDs 128 bit unsigned value. The
+     * value is always in big endian, regardless of the native byte order.
+     */
+    public val msb: Long
+
+    /**
+     * Get the least significant 64 bits of the UUIDs 128 bit unsigned value.
+     * The value is always in big endian, regardless of the native byte order.
+     */
+    public val lsb: Long
+
+    /**
      * Whether this UUID is equal to the given other object.
      *
      * Two UUIDs are considered to be equal if, and only if, they encapsulate
@@ -115,3 +127,45 @@ public fun String.toUuidOrNull(): Uuid? =
     } catch (_: IllegalArgumentException) {
         null
     }
+
+/**
+ * Create new UUID instance with the given 64 bit [most][msb] and [least][lsb]
+ * significant big endian bits.
+ */
+public expect fun uuidOf(msb: Long, lsb: Long): Uuid
+
+/**
+ * Create new UUID instance with the given 64 bit [most][msb] and [least][lsb]
+ * significant little endian bits.
+ */
+public expect fun uuidOfLittleEndian(msb: Long, lsb: Long): Uuid
+
+@Suppress("NOTHING_TO_INLINE")
+internal inline fun byteArrayOf(msb: Long, lsb: Long): ByteArray =
+    byteArrayOf(
+        (msb ushr 56).toByte(),
+        (msb ushr 48).toByte(),
+        (msb ushr 40).toByte(),
+        (msb ushr 32).toByte(),
+        (msb ushr 24).toByte(),
+        (msb ushr 16).toByte(),
+        (msb ushr 8).toByte(),
+        msb.toByte(),
+        (lsb ushr 56).toByte(),
+        (lsb ushr 48).toByte(),
+        (lsb ushr 40).toByte(),
+        (lsb ushr 32).toByte(),
+        (lsb ushr 24).toByte(),
+        (lsb ushr 16).toByte(),
+        (lsb ushr 8).toByte(),
+        lsb.toByte()
+    )
+
+internal fun ByteArray.toLong(start: Int, end: Int): Long {
+    var result = 0L
+    var i = start
+    do {
+        result = (result shl 8) or (this[i].toLong() and 0xff)
+    } while (++i < end)
+    return result
+}

@@ -97,4 +97,16 @@ class UuidTest {
         assertEquals("6ba7b810-9dad-11d1-80b4-00c04fd430c8", uuid.toString())
         assertTrue(bytes.contentEquals(uuid.toByteArray()))
     }
+
+    @Test fun bits() {
+        val be = uuidOf(-1475028236756628487, -8924160304517910252)
+        assertEquals("eb87a5a2-3a73-4bf9-8427-037c3a917114", be.toString())
+        assertEquals(-1475028236756628487, be.msb)
+        assertEquals(-8924160304517910252, be.lsb)
+
+        val le = uuidOfLittleEndian(-483165839338141717, 1473118233501575044)
+        assertEquals("eb87a5a2-3a73-4bf9-8427-037c3a917114", le.toString())
+        assertEquals(-1475028236756628487, le.msb)
+        assertEquals(-8924160304517910252, le.lsb)
+    }
 }
