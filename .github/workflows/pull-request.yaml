@@ -61,8 +61,13 @@ jobs:
 
       - name: JVM Test
         run: ./gradlew jvmMatrixTest --stacktrace
+      # TODO Chrome headless does not work properly on MacOS.
       - name: JS Test
+        if: matrix.os != 'macOS-latest'
         run: ./gradlew jsTest --stacktrace
+      - name: JS Test
+        if: matrix.os == 'macOS-latest'
+        run: ./gradlew jsNodeTest --stacktrace
       - name: MacOS Test
         if: matrix.os == 'macOS-latest'
         run: ./gradlew macosX64Test iosTest tvosTest watchosTest --stacktrace
