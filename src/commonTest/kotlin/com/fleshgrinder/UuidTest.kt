@@ -72,4 +72,29 @@ class UuidTest {
 
         assertNotEquals(a.hashCode(), x.hashCode(), "a/x hash")
     }
+
+    @Test fun bytes() {
+        val bytes = byteArrayOf(
+            0x6b.toByte(),
+            0xa7.toByte(),
+            0xb8.toByte(),
+            0x10.toByte(),
+            0x9d.toByte(),
+            0xad.toByte(),
+            0x11.toByte(),
+            0xd1.toByte(),
+            0x80.toByte(),
+            0xb4.toByte(),
+            0x00.toByte(),
+            0xc0.toByte(),
+            0x4f.toByte(),
+            0xd4.toByte(),
+            0x30.toByte(),
+            0xc8.toByte()
+        )
+        val uuid = bytes.toUuid()
+
+        assertEquals("6ba7b810-9dad-11d1-80b4-00c04fd430c8", uuid.toString())
+        assertTrue(bytes.contentEquals(uuid.toByteArray()))
+    }
 }
