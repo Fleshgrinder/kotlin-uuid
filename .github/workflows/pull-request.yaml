@@ -1,4 +1,4 @@
-name: PR
+name: pr
 
 on:
   pull_request:
@@ -45,8 +45,4 @@ jobs:
         uses: actions/setup-java@v1
         with: { java-version: 13 }
       - name: Test
-        run: ./gradlew jsTest jvmMatrixTest nativeTest --stacktrace
-      # We need to stop the Gradle Daemon because otherwise we end up with stuff
-      # in the cache we do not want and it plainly fails on Windows.
-      - name: Stop Gradle Daemon
-        run: ./gradlew --stop
+        run: ./gradlew jsTest jvmMatrixTest nativeTest --no-daemon --stacktrace

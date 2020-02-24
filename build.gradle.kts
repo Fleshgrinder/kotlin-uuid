@@ -22,6 +22,11 @@ allprojects {
     }
 }
 
+// TODO we should be able to remove this once 1.3.70 is out.
+System.getenv("KOTLIN_DATA_DIR")?.let {
+    System.setProperty("kotlin.native.home", it)
+}
+
 val ideaActive = System.getProperty("idea.active") == "true"
 
 kotlin {

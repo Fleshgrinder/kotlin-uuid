@@ -1,4 +1,4 @@
-name: Gradle Wrapper Validation
+name: security
 
 on:
   pull_request:
@@ -6,7 +6,7 @@ on:
       - 'gradle/wrapper/*'
 
 jobs:
-  validation:
+  gradle-wrapper-validation:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
