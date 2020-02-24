@@ -135,6 +135,20 @@ val jvmTest by tasks.getting(Test::class) {
     System.getenv("JAVA_TEST_HOME").let { executable = "$it/bin/java" }
 }
 
+val jvmMatrixTest by tasks.registering {
+    description = "Run tests for multiple JDK installations."
+    group = "verification"
+    setDependsOn(jvmTest.dependsOn)
+    doLast {
+        val versionPattern = Regex("JAVA_HOME_[1-9][0-9]*\\.[1-9][0-9]*\\.[1-9][0-9]*(-ea)?_x64")
+        System.getenv().filterKeys { it matches versionPattern }.forEach { (javaVersion, javaHome) ->
+            println(javaVersion)
+            jvmTest.executable = "$javaHome/bin/java"
+            jvmTest.executeTests()
+        }
+    }
+}
+
 if (!ideaActive) {
     val nativeTest by tasks.registering {
         description = "Run the test for this platform."
