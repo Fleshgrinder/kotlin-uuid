@@ -25,23 +25,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      # region cache
-      - name: Gradle Cache
-        uses: actions/cache@v1
-        with:
-          path: ~/.gradle
-          key: ${{ runner.os }}-gradle-v1-${{ hashFiles('**/*gradle.*') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-v1-
-      # TODO KONAN_DATA_DIR might allow us a combined cache in the future.
-      - name: Konan Cache
-        uses: actions/cache@v1
-        with:
-          path: ~/.konan
-          key: ${{ runner.os }}-konan-v1-${{ hashFiles('**/*gradle.*') }}
-          restore-keys: |
-            ${{ runner.os }}-konan-v1-
-      # endregion cache
+      # Caching was dropped because they grow so big with all the dependencies
+      # that it is faster to simply download them, which is done in parallel in
+      # contrast to the cache checkout that is completely sync (download huge
+      # tar and decompress it).
 
       # region java
       # https://github.com/actions/setup-java/issues/44
