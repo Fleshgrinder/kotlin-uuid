@@ -1,8 +1,7 @@
 @file:Suppress("UNUSED_VARIABLE")
 
-import org.gradle.api.tasks.testing.logging.TestLogEvent.*
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
-import org.jetbrains.kotlin.gradle.targets.jvm.tasks.KotlinJvmTest
+import org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink
 import org.jetbrains.kotlin.konan.target.HostManager
 
 plugins {
@@ -34,7 +33,14 @@ kotlin {
                 debug = false
             }
         }
+        compilations.all {
+            kotlinOptions {
+                moduleKind = "umd"
+                sourceMap = true
+            }
+        }
     }
+    wasm32() // TODO how to unit test?
 
     jvm {
         compilations.all {
@@ -54,7 +60,17 @@ kotlin {
     }
 
     macosX64()
+    ios()
+    tvos()
+    watchos()
+
     linuxX64()
+    linuxMipsel32()
+    linuxMips32()
+    linuxArm64()
+    linuxArm32Hfp()
+
+    mingwX86()
     mingwX64()
 
     targets.all {
@@ -133,12 +149,6 @@ kotlin {
 }
 
 tasks {
-    withType<Test>().configureEach {
-        testLogging {
-            events(FAILED, PASSED, SKIPPED, STANDARD_ERROR, STANDARD_OUT)
-        }
-    }
-
     val jvmTest by getting(Test::class) {
         System.getenv("JAVA_TEST_HOME")?.let { executable = "$it/bin/java" }
     }
@@ -156,16 +166,29 @@ tasks {
         }
     }
 
-    if (!ideaActive) {
-        val nativeTest by registering {
-            description = "Run the test for this platform."
+    if (HostManager.hostIsMac) {
+        val linkDebugTestIosX64 by getting(KotlinNativeLink::class)
+        val iosTest by registering(Exec::class) {
             group = "verification"
-            when {
-                HostManager.hostIsMac -> dependsOn("macosX64Test")
-                HostManager.hostIsLinux -> dependsOn("linuxX64Test")
-                HostManager.hostIsMingw -> dependsOn("mingwX64Test")
-                else -> error("Cannot test unknown host: ${HostManager.hostName}")
-            }
+            description = "Run iOS tests with a simulator."
+            dependsOn(linkDebugTestIosX64)
+            commandLine("xcrun", "simctl", "spawn", "--standalone", "iPhone 8", linkDebugTestIosX64.outputFile.get())
+        }
+
+        val linkDebugTestTvosX64 by getting(KotlinNativeLink::class)
+        val tvosTest by registering(Exec::class) {
+            group = "verification"
+            description = "Run tvOS tests with a simulator."
+            dependsOn(linkDebugTestTvosX64)
+            commandLine("xcrun", "simctl", "spawn", "--standalone", "Apple TV", linkDebugTestTvosX64.outputFile.get())
+        }
+
+        val linkDebugTestWatchosX86 by getting(KotlinNativeLink::class)
+        val watchosTest by registering(Exec::class) {
+            group = "verification"
+            description = "Run watchOS tests with a simulator."
+            dependsOn(linkDebugTestWatchosX86)
+            commandLine("xcrun", "simctl", "spawn", "--standalone", "Apple Watch Series 4 - 40mm", linkDebugTestWatchosX86.outputFile.get())
         }
     }
 }

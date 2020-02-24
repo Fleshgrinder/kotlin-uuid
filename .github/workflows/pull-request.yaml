@@ -56,8 +56,19 @@ jobs:
         with: { java-version: 13 }
       # endregion java
 
-      - name: Test
-        run: ./gradlew jsTest jvmMatrixTest nativeTest --stacktrace
+      - name: JVM Test
+        run: ./gradlew jvmMatrixTest --stacktrace
+      - name: JS Test
+        run: ./gradlew jsTest --stacktrace
+      - name: MacOS Test
+        if: matrix.os == 'macOS-latest'
+        run: ./gradlew macosX64Test iosTest tvosTest watchosTest --stacktrace
+      - name: Linux Test
+        if: matrix.os == 'ubuntu-latest'
+        run: ./gradlew linuxX64Test linuxMipsel32Test linuxMips32Test linuxArm64Test linuxArm32HfpTest --stacktrace
+      - name: Windows Test
+        if: matrix.os == 'windows-latest'
+        run: ./gradlew mingwX86Test mingwX64Test --stacktrace
 
       # We need to stop all Gradle daemons at the end to ensure that we are not
       # going to persist lock files or other unwanted stuff in our cache.
