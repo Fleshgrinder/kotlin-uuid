@@ -41,6 +41,9 @@ public actual class Uuid @PublishedApi internal constructor(
     public actual val lsb: Long
         get() = bytes.toLong(8, 16)
 
+    public actual val variant: UuidVariant
+        get() = UuidVariant(bytes[8])
+
     public actual override fun equals(other: Any?): Boolean =
         other is Uuid && bytes.contentEquals(other.bytes)
 
@@ -83,7 +86,10 @@ public actual class Uuid @PublishedApi internal constructor(
             13 -> 'd'
             14 -> 'e'
             15 -> 'f'
-            else -> error("Internal error: encountered non-hexadecimal digit $n")
+            else -> error(
+                "Internal error: encountered non-hexadecimal digit $n, please create a bug report: " +
+                    "https://github.com/Fleshgrinder/kotlin-uuid/issues/new"
+            )
         }
 }
 
@@ -152,23 +158,3 @@ private fun String.hex(i: Int): Int =
 
 public actual fun uuidOf(msb: Long, lsb: Long): Uuid =
     Uuid(byteArrayOf(msb, lsb))
-
-public actual fun uuidOfLittleEndian(msb: Long, lsb: Long): Uuid =
-    Uuid(byteArrayOf(
-        msb.toByte(),
-        (msb ushr 8).toByte(),
-        (msb ushr 16).toByte(),
-        (msb ushr 24).toByte(),
-        (msb ushr 32).toByte(),
-        (msb ushr 40).toByte(),
-        (msb ushr 48).toByte(),
-        (msb ushr 56).toByte(),
-        lsb.toByte(),
-        (lsb ushr 8).toByte(),
-        (lsb ushr 16).toByte(),
-        (lsb ushr 24).toByte(),
-        (lsb ushr 32).toByte(),
-        (lsb ushr 40).toByte(),
-        (lsb ushr 48).toByte(),
-        (lsb ushr 56).toByte()
-    ))

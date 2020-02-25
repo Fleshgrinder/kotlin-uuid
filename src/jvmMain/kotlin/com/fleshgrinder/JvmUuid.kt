@@ -2,10 +2,11 @@
 
 package com.fleshgrinder
 
-import java.lang.Long.reverseBytes
 import java.util.UUID
 import kotlin.LazyThreadSafetyMode.PUBLICATION
 
+// This constructor is not only published to enable inlining, it is also the
+// idiomatic way in Java to construct a new UUID instance from two long values.
 public actual class Uuid @PublishedApi internal constructor(
     public actual val msb: Long,
     public actual val lsb: Long
@@ -18,6 +19,9 @@ public actual class Uuid @PublishedApi internal constructor(
      * enough. We also memoize the result to speed things up even further.
      */
     private val string by lazy(PUBLICATION) { UUID(msb, lsb).toString() }
+
+    public actual val variant: UuidVariant
+        get() = UuidVariant((lsb ushr 56).toByte())
 
     public actual override fun equals(other: Any?): Boolean =
         other is Uuid && msb == other.msb && lsb == other.lsb
@@ -92,20 +96,6 @@ public actual class Uuid @PublishedApi internal constructor(
         @Suppress("NEWER_VERSION_IN_SINCE_KOTLIN")
         public fun of(bytes: ByteArray): Uuid =
             bytes.toUuid()
-
-        /**
-         * Create new UUID instance with the given 64 bit [most][msb] and
-         * [least][lsb] significant little endian bits.
-         *
-         * Use `new Uuid(0, 0)` to construct and instance with the default big
-         * endian byte order.
-         */
-        @JvmStatic
-        // https://youtrack.jetbrains.com/issue/KT-36439
-        @SinceKotlin("999999.999999")
-        @Suppress("NEWER_VERSION_IN_SINCE_KOTLIN")
-        public fun ofLittleEndian(msb: Long, lsb: Long): Uuid =
-            uuidOfLittleEndian(msb, lsb)
     }
 }
 
@@ -161,8 +151,3 @@ private fun String.toLong(start: Int, end: Int): Long {
 @Suppress("NOTHING_TO_INLINE")
 public actual inline fun uuidOf(msb: Long, lsb: Long): Uuid =
     Uuid(msb, lsb)
-
-@JvmSynthetic
-@Suppress("NOTHING_TO_INLINE")
-public actual inline fun uuidOfLittleEndian(msb: Long, lsb: Long): Uuid =
-    Uuid(reverseBytes(msb), reverseBytes(lsb))

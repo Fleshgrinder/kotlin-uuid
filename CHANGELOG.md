@@ -10,5 +10,6 @@ project adheres to [Semantic Versioning](https://semver.org/).
 - UUID string parsing and formatting
 - UUID byte array conversions
 - UUID msb/lsb conversions
+- UUID Variant
 
 [Unreleased]: https://github.com/Fleshgrinder/kotlin-uuid

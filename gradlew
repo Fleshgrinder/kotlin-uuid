@@ -84,8 +84,10 @@ CLASSPATH=$APP_HOME/gradle/wrapper/gradle-wrapper.jar
 
 # Custom logic for GitHub Actions. We want to use the latest LTS version of Java
 # for Gradle to get maximum speed and because Gradle cannot be executed with
-# Java 6.
-if [ "${JAVA_HOME_11_X64:-}" != '' ]; then
+# Java 6. Note, however, that the benchmarks always have to us the configured
+# Java version, otherwise we would compile with a newer version, which obviously
+# cannot work.
+if [ "${JAVA_HOME_11_X64:-}" != '' ] && [ "${GITHUB_WORKFLOW:-}" != 'benchmarks' ]; then
     JAVACMD="$JAVA_HOME_11_X64/bin/java"
 elif [ -n "$JAVA_HOME" ] ; then
     if [ -x "$JAVA_HOME/jre/sh/java" ] ; then
