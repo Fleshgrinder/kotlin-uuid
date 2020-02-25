@@ -5,6 +5,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertNotEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -99,14 +100,25 @@ class UuidTest {
     }
 
     @Test fun bits() {
-        val be = uuidOf(-1475028236756628487, -8924160304517910252)
-        assertEquals("eb87a5a2-3a73-4bf9-8427-037c3a917114", be.toString())
-        assertEquals(-1475028236756628487, be.msb)
-        assertEquals(-8924160304517910252, be.lsb)
+        val bigEndian = uuidOf(-1475028236756628487, -8924160304517910252)
+        assertEquals("eb87a5a2-3a73-4bf9-8427-037c3a917114", bigEndian.toString())
+        assertEquals(-1475028236756628487, bigEndian.msb)
+        assertEquals(-8924160304517910252, bigEndian.lsb)
+    }
 
-        val le = uuidOfLittleEndian(-483165839338141717, 1473118233501575044)
-        assertEquals("eb87a5a2-3a73-4bf9-8427-037c3a917114", le.toString())
-        assertEquals(-1475028236756628487, le.msb)
-        assertEquals(-8924160304517910252, le.lsb)
+    @Test fun variant() {
+        fun byteArrayOf(variant: Int) =
+            ByteArray(16).also { it[8] = variant.toByte() }
+
+        assertEquals(UuidVariant.NCS, byteArrayOf(0x00).toUuid().variant)
+        assertEquals(UuidVariant.RFC4122, byteArrayOf(0x80).toUuid().variant)
+        assertEquals(UuidVariant.Microsoft, byteArrayOf(0xc0).toUuid().variant)
+        assertEquals(UuidVariant.Future, byteArrayOf(0xe0).toUuid().variant)
+
+        // 0xx, 10x, 110, and 111 always match no matter what the value is, it
+        // is thus impossible that a value does not give us a variant.
+        for (x in 0x00..0xff) {
+            assertNotNull(byteArrayOf(x).toUuid().variant)
+        }
     }
 }

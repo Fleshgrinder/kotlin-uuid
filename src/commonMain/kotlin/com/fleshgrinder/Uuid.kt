@@ -33,6 +33,17 @@ public expect class Uuid {
     public val lsb: Long
 
     /**
+     * Get the variant that describes the internal data layout of this UUID.
+     *
+     * Only use this if the UUID originates from a trusted source that is known
+     * to generate UUIDs that set the variant correctly. All possible 128 bit
+     * values will result in some variant but there is no guarantee that those
+     * bits were set to that value because the internal data layout adheres to
+     * it or by chance.
+     */
+    public val variant: UuidVariant
+
+    /**
      * Whether this UUID is equal to the given other object.
      *
      * Two UUIDs are considered to be equal if, and only if, they encapsulate
@@ -133,12 +144,6 @@ public fun String.toUuidOrNull(): Uuid? =
  * significant big endian bits.
  */
 public expect fun uuidOf(msb: Long, lsb: Long): Uuid
-
-/**
- * Create new UUID instance with the given 64 bit [most][msb] and [least][lsb]
- * significant little endian bits.
- */
-public expect fun uuidOfLittleEndian(msb: Long, lsb: Long): Uuid
 
 @Suppress("NOTHING_TO_INLINE")
 internal inline fun byteArrayOf(msb: Long, lsb: Long): ByteArray =

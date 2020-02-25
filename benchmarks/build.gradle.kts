@@ -8,7 +8,6 @@ jmh {
     failOnError = true
     forceGC = true
     jmhVersion = "1.23"
-    System.getenv("JAVA_HOME")?.let { jvm = "$it/bin/java" }
 }
 
 dependencies {
