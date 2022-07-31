@@ -1,0 +1,8 @@
+[versions]
+jmh = '0.6.6'
+kotlin = '1.6.21'
+
+[plugins]
+jmh = { id = 'me.champeau.jmh', version.ref = 'jmh' }
+kotlin-jvm = { id = 'org.jetbrains.kotlin.jvm', version.ref = 'kotlin' }
+kotlin-mpp = { id = 'org.jetbrains.kotlin.multiplatform', version.ref = 'kotlin' }
